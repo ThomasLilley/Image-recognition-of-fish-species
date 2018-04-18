@@ -1,13 +1,13 @@
 import os
 import cv2
 import numpy as np
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as plt
+import pydot
 
 from keras import backend as k
-import tensorflow as tf
 k.set_image_dim_ordering('tf')
 
-from keras.utils import np_utils
+from keras.utils import np_utils, plot_model
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import  Convolution2D, MaxPooling2D
@@ -25,7 +25,7 @@ imgCols = 256
 numChannels = 3
 imgDataList = []
 
-#load each dataset category and resize each image for processing
+# load each dataset category and resize each image for processing
 for dataset in dataDirList:
     imgList = os.listdir(dataPath + '/' + dataset)
     print ('\n' + '{}'.format(dataset) + ' Dataset Loaded, Resizing Images...')
@@ -40,10 +40,8 @@ print('Finished Resizing\n')
 imgData = np.array(imgDataList)
 imgData = imgData.astype('float32')
 imgData /= 255
-#print('(Samples, Rows, Cols, Dimensions) = ')
-#print(imgData.shape)
-
-
+# print('(Samples, Rows, Cols, Dimensions) = ')
+# print(imgData.shape)
 
 sampleSize = imgData.shape[0]
 labels = np.ones((sampleSize,),dtype='int64')
@@ -64,7 +62,7 @@ categories = ['bluestripeSnapper', 'cardinalfish', 'clownfish', 'clownTriggerfis
                'spottedTrunkfish', 'yellowTang']
 lc = np_utils.to_categorical(labels, numCategories)
 
-x,y = shuffle(imgData, lc, random_state=2)
+x, y = shuffle(imgData, lc, random_state=2)
 
 trainX, testX, trainY, testY = train_test_split(x, y, test_size=0.2, random_state=2)
 
@@ -105,14 +103,17 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=20, verbose=1, validation_data=(testX, testY))
+hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=10, verbose=1, validation_data=(testX, testY))
+
+# plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
+
 
 # visualizing losses and accuracy
 train_loss=hist.history['loss']
 val_loss=hist.history['val_loss']
 train_acc=hist.history['acc']
 val_acc=hist.history['val_acc']
-xc=range(num_epoch)
+xc=range(10)
 
 plt.figure(1,figsize=(7,5))
 plt.plot(xc,train_loss)
@@ -122,8 +123,9 @@ plt.ylabel('loss')
 plt.title('train_loss vs val_loss')
 plt.grid(True)
 plt.legend(['train','val'])
-#print plt.style.available # use bmh, classic,ggplot for big pictures
+# print plt.style.available # use bmh, classic,ggplot for big pictures
 plt.style.use(['classic'])
+plt.show()
 
 plt.figure(2,figsize=(7,5))
 plt.plot(xc,train_acc)
@@ -135,14 +137,14 @@ plt.grid(True)
 plt.legend(['train','val'],loc=4)
 #print plt.style.available # use bmh, classic,ggplot for big pictures
 plt.style.use(['classic'])
+plt.show()
 
 
+#score = model.evaluate(testX, testY, batch_size=128)
+#print('Test Loss', score[0])
+#print('Test Accuracy', score[1])
 
-score = model.evaluate(testX, testY, show_accuracy=True, verbose=0)
-print('Test Loss', score[0])
-print('Test Accuracy', score[1])
-
-testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\test_fish.jpg')
+testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\yellow_tang.jpg')
 testImage = cv2.resize(testImage, (imgRows, imgCols))
 testImage = np.array(testImage)
 testImage = testImage.astype('float32')
