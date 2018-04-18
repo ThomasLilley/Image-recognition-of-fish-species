@@ -66,3 +66,5 @@ humanLabels = ['bluestripeSnapper', 'cardinalfish', 'clownfish', 'clownTriggerfi
                'spottedTrunkfish', 'yellowTang']
 labelsToHuman = np_utils.to_categorical(humanLabels, numCategories)
 
+
+
