@@ -23,7 +23,6 @@ dataDirList = os.listdir(dataPath)
 imgRows = 256
 imgCols = 256
 numChannels = 3
-
 imgDataList = []
 
 #load each dataset category and resize each image for processing
@@ -106,13 +105,49 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-training = model.fit(trainX, trainY, batch_size=16, nb_epoch=20, verbose=1, validation_data=(testX, testY))
+hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=20, verbose=1, validation_data=(testX, testY))
+
+# visualizing losses and accuracy
+train_loss=hist.history['loss']
+val_loss=hist.history['val_loss']
+train_acc=hist.history['acc']
+val_acc=hist.history['val_acc']
+xc=range(num_epoch)
+
+plt.figure(1,figsize=(7,5))
+plt.plot(xc,train_loss)
+plt.plot(xc,val_loss)
+plt.xlabel('num of Epochs')
+plt.ylabel('loss')
+plt.title('train_loss vs val_loss')
+plt.grid(True)
+plt.legend(['train','val'])
+#print plt.style.available # use bmh, classic,ggplot for big pictures
+plt.style.use(['classic'])
+
+plt.figure(2,figsize=(7,5))
+plt.plot(xc,train_acc)
+plt.plot(xc,val_acc)
+plt.xlabel('num of Epochs')
+plt.ylabel('accuracy')
+plt.title('train_acc vs val_acc')
+plt.grid(True)
+plt.legend(['train','val'],loc=4)
+#print plt.style.available # use bmh, classic,ggplot for big pictures
+plt.style.use(['classic'])
+
+
+
+score = model.evaluate(testX, testY, show_accuracy=True, verbose=0)
+print('Test Loss', score[0])
+print('Test Accuracy', score[1])
 
 testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\test_fish.jpg')
 testImage = cv2.resize(testImage, (imgRows, imgCols))
 testImage = np.array(testImage)
 testImage = testImage.astype('float32')
 testImage /= 255
+testImage= np.expand_dims(testImage, axis=0)
 print (testImage.shape)
 
 print((model.predict(testImage)))
