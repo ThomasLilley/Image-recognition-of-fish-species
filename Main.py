@@ -16,6 +16,7 @@ from keras.optimizers import SGD, RMSprop, adam
 from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
 
+
 dataPath = 'C:\\Users\\Thoma\\Fish Dataset\\Fish Dataset'
 numCategories = 10
 dataDirList = os.listdir(dataPath)
@@ -25,25 +26,23 @@ numChannels = 3
 
 imgDataList = []
 
-i = 0
 #load each dataset category and resize each image for processing
 for dataset in dataDirList:
     imgList = os.listdir(dataPath + '/' + dataset)
     print ('\n' + '{}'.format(dataset) + ' Dataset Loaded, Resizing Images...')
     for img in imgList:
-        i = i + 1
         inputImg = cv2.imread(dataPath + '/' + dataset + '/' + img)
         inputImgResize = cv2.resize(inputImg, (imgRows, imgCols))
         imgDataList.append(inputImgResize)
-    print(i)
-    print('Resizing complete.  moving to next dataset...')
+
+    print('Resizing complete.  moving to next category...')
 
 print('Finished Resizing\n')
 imgData = np.array(imgDataList)
 imgData = imgData.astype('float32')
 imgData /= 255
-print('(Samples, Rows, Cols, Dimensions) = ')
-print(imgData.shape)
+#print('(Samples, Rows, Cols, Dimensions) = ')
+#print(imgData.shape)
 
 
 
@@ -61,10 +60,60 @@ labels[1523:1616] = 7
 labels[1616:1770] = 8
 labels[1770:1810] = 9
 
-humanLabels = ['bluestripeSnapper', 'cardinalfish', 'clownfish', 'clownTriggerfish',
+categories = ['bluestripeSnapper', 'cardinalfish', 'clownfish', 'clownTriggerfish',
                'lionfish', 'moorishIdol', 'parrotfish', 'saddleButterflyfish',
                'spottedTrunkfish', 'yellowTang']
-labelsToHuman = np_utils.to_categorical(humanLabels, numCategories)
+lc = np_utils.to_categorical(labels, numCategories)
+
+x,y = shuffle(imgData, lc, random_state=2)
+
+trainX, testX, trainY, testY = train_test_split(x, y, test_size=0.2, random_state=2)
 
 
+inputShape = imgData[0].shape
 
+model = Sequential()
+
+model.add(Convolution2D(32, 3, 3, border_mode='same', input_shape=inputShape))
+model.add(Activation('relu'))
+model.add(Convolution2D(32, 3, 3))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.5))
+
+model.add(Convolution2D(64, 3, 3))
+model.add(Activation('relu'))
+# model.add(Convolution2D(64, 3, 3))
+# model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.5))
+
+model.add(Flatten())
+model.add(Dense(64))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(numCategories))
+model.add(Activation('softmax'))
+
+model.compile(loss='categorical_crossentropy', optimizer='adadelta',metrics=["accuracy"])
+
+model.summary()
+model.get_config()
+model.layers[0].get_config()
+model.layers[0].input_shape
+model.layers[0].output_shape
+model.layers[0].get_weights()
+np.shape(model.layers[0].get_weights()[0])
+model.layers[0].trainable
+
+training = model.fit(trainX, trainY, batch_size=16, nb_epoch=20, verbose=1, validation_data=(testX, testY))
+
+testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\test_fish.jpg')
+testImage = cv2.resize(testImage, (imgRows, imgCols))
+testImage = np.array(testImage)
+testImage = testImage.astype('float32')
+testImage /= 255
+print (testImage.shape)
+
+print((model.predict(testImage)))
+print(model.predict_classes(testImage))
