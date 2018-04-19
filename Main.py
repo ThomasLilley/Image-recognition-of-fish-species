@@ -19,8 +19,8 @@ from sklearn.cross_validation import train_test_split
 dataPath = 'C:\\Users\\Thoma\\Fish Dataset\\Fish Dataset'
 numCategories = 10
 dataDirList = os.listdir(dataPath)
-imgRows = 256
-imgCols = 256
+imgRows = 128
+imgCols = 128
 numChannels = 3
 imgDataList = []
 
@@ -101,7 +101,7 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=20, verbose=1, validation_data=(testX, testY))
+hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=15, verbose=1, validation_data=(testX, testY))
 
 # plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
 # visualizing losses and accuracy
@@ -109,9 +109,9 @@ train_loss = hist.history['loss']
 val_loss = hist.history['val_loss']
 train_acc = hist.history['acc']
 val_acc = hist.history['val_acc']
-xc = range(20)
+xc = range(15)
 
-plt.figure(1, figsize=(7,5))
+plt.figure(1, figsize=(7, 5))
 plt.plot(xc, train_loss)
 plt.plot(xc, val_loss)
 plt.xlabel('num of Epochs')
@@ -140,7 +140,7 @@ plt.show()
 # print('Test Loss', score[0])
 # print('Test Accuracy', score[1])
 
-testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\yellow_tang.jpg')
+testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\test_fish.jpg')
 testImage = cv2.resize(testImage, (imgRows, imgCols))
 testImage = np.array(testImage)
 testImage = testImage.astype('float32')
