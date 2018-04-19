@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import pydot
 
 from keras import backend as k
 k.set_image_dim_ordering('tf')
@@ -28,7 +27,7 @@ imgDataList = []
 # load each dataset category and resize each image for processing
 for dataset in dataDirList:
     imgList = os.listdir(dataPath + '/' + dataset)
-    print ('\n' + '{}'.format(dataset) + ' Dataset Loaded, Resizing Images...')
+    print('\n' + '{}'.format(dataset) + ' Dataset Loaded, Resizing Images...')
     for img in imgList:
         inputImg = cv2.imread(dataPath + '/' + dataset + '/' + img)
         inputImgResize = cv2.resize(inputImg, (imgRows, imgCols))
@@ -103,26 +102,24 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=10, verbose=1, validation_data=(testX, testY))
+hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=2, verbose=1, validation_data=(testX, testY))
 
 # plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
-
-
 # visualizing losses and accuracy
-train_loss=hist.history['loss']
-val_loss=hist.history['val_loss']
-train_acc=hist.history['acc']
-val_acc=hist.history['val_acc']
-xc=range(10)
+train_loss = hist.history['loss']
+val_loss = hist.history['val_loss']
+train_acc = hist.history['acc']
+val_acc = hist.history['val_acc']
+xc = range(2)
 
-plt.figure(1,figsize=(7,5))
-plt.plot(xc,train_loss)
-plt.plot(xc,val_loss)
+plt.figure(1, figsize=(7,5))
+plt.plot(xc, train_loss)
+plt.plot(xc, val_loss)
 plt.xlabel('num of Epochs')
 plt.ylabel('loss')
 plt.title('train_loss vs val_loss')
 plt.grid(True)
-plt.legend(['train','val'])
+plt.legend(['train', 'val'])
 # print plt.style.available # use bmh, classic,ggplot for big pictures
 plt.style.use(['classic'])
 plt.show()
@@ -135,22 +132,25 @@ plt.ylabel('accuracy')
 plt.title('train_acc vs val_acc')
 plt.grid(True)
 plt.legend(['train','val'],loc=4)
-#print plt.style.available # use bmh, classic,ggplot for big pictures
+# print plt.style.available # use bmh, classic,ggplot for big pictures
 plt.style.use(['classic'])
 plt.show()
 
 
-#score = model.evaluate(testX, testY, batch_size=128)
-#print('Test Loss', score[0])
-#print('Test Accuracy', score[1])
+# score = model.evaluate(testX, testY, batch_size=128)
+# print('Test Loss', score[0])
+# print('Test Accuracy', score[1])
 
 testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\yellow_tang.jpg')
 testImage = cv2.resize(testImage, (imgRows, imgCols))
 testImage = np.array(testImage)
 testImage = testImage.astype('float32')
 testImage /= 255
-testImage= np.expand_dims(testImage, axis=0)
-print (testImage.shape)
+testImage = np.expand_dims(testImage, axis=0)
+print(testImage.shape)
 
 print((model.predict(testImage)))
+print('The most likely category is : ')
 print(model.predict_classes(testImage))
+
+
