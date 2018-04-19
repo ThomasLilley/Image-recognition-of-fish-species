@@ -32,7 +32,6 @@ for dataset in dataDirList:
         inputImg = cv2.imread(dataPath + '/' + dataset + '/' + img)
         inputImgResize = cv2.resize(inputImg, (imgRows, imgCols))
         imgDataList.append(inputImgResize)
-
     print('Resizing complete.  moving to next category...')
 
 print('Finished Resizing\n')
@@ -43,7 +42,7 @@ imgData /= 255
 # print(imgData.shape)
 
 sampleSize = imgData.shape[0]
-labels = np.ones((sampleSize,),dtype='int64')
+labels = np.ones((sampleSize,), dtype='int64')
 
 labels[0:150] = 0
 labels[150:539] = 1
@@ -102,7 +101,7 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=2, verbose=1, validation_data=(testX, testY))
+hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=20, verbose=1, validation_data=(testX, testY))
 
 # plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
 # visualizing losses and accuracy
@@ -110,7 +109,7 @@ train_loss = hist.history['loss']
 val_loss = hist.history['val_loss']
 train_acc = hist.history['acc']
 val_acc = hist.history['val_acc']
-xc = range(2)
+xc = range(20)
 
 plt.figure(1, figsize=(7,5))
 plt.plot(xc, train_loss)
@@ -150,7 +149,7 @@ testImage = np.expand_dims(testImage, axis=0)
 print(testImage.shape)
 
 print((model.predict(testImage)))
-print('The most likely category is : ')
-print(model.predict_classes(testImage))
-
-
+predict = (model.predict_classes(testImage))
+predict = predict.astype('int')
+prediction = predict[0]
+print('The most likely category is : ' + categories[prediction])
