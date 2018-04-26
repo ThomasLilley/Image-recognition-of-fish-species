@@ -10,7 +10,7 @@ from keras.utils import np_utils, plot_model
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import  Convolution2D, MaxPooling2D
-from keras.optimizers import SGD, RMSprop, adam
+
 
 from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
@@ -38,12 +38,11 @@ print('Finished Resizing\n')
 imgData = np.array(imgDataList)
 imgData = imgData.astype('float32')
 imgData /= 255
-# print('(Samples, Rows, Cols, Dimensions) = ')
-# print(imgData.shape)
-
 sampleSize = imgData.shape[0]
 labels = np.ones((sampleSize,), dtype='int64')
 
+# Assign a label to each image so that they can be randomly shuffled whilst maintaining their
+# category identifier
 labels[0:150] = 0
 labels[150:539] = 1
 labels[539:695] = 2
@@ -109,10 +108,9 @@ hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=epochNum, verbose=1, va
 
 flag = True
 while flag:
-    usrPlt = input("Would you like to plot Training and Validation Data? Y/N: ")
+    usrPlt = input("Would you like to plot Training, Validation and Loss Data? Y/N: ")
     if usrPlt == 'Y':
-        # plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
-        # visualizing losses and accuracy
+
         trainLoss = hist.history['loss']
         valLoss = hist.history['val_loss']
         trainAcc = hist.history['acc']
@@ -126,11 +124,9 @@ while flag:
         plt.title('training loss vs validation loss')
         plt.grid(True)
         plt.legend(['train', 'val'])
-        # print plt.style.available # use bmh, classic,ggplot for big pictures
-        plt.style.use(['classic'])
         plt.show()
 
-        plt.figure(2,figsize=(7,5))
+        plt.figure(2, figsize=(7, 5))
         plt.plot(e, trainAcc)
         plt.plot(e, valAcc)
         plt.xlabel('num of Epochs')
@@ -138,8 +134,6 @@ while flag:
         plt.title('train accuracy vs validation accuracy')
         plt.grid(True)
         plt.legend(['train', 'val'], loc=4)
-        # print plt.style.available # use bmh, classic,ggplot for big pictures
-        # plt.style.use(['classic'])
         plt.show()
         flag = False
     elif usrPlt == 'N':
