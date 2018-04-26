@@ -16,7 +16,7 @@ from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
 
 
-dataPath = 'C:\\Users\\Thoma\\Fish Dataset\\Fish Dataset'
+dataPath = 'Fish Dataset\\Fish Dataset'
 numCategories = 10
 dataDirList = os.listdir(dataPath)
 imgRows = 128
@@ -64,6 +64,7 @@ x, y = shuffle(imgData, lc, random_state=2)
 
 trainX, testX, trainY, testY = train_test_split(x, y, test_size=0.2, random_state=2)
 
+print('Beginning Training Using Keras and TensorFlow')
 
 inputShape = imgData[0].shape
 
@@ -78,8 +79,8 @@ model.add(Dropout(0.5))
 
 model.add(Convolution2D(64, 3, 3))
 model.add(Activation('relu'))
-# model.add(Convolution2D(64, 3, 3))
-# model.add(Activation('relu'))
+model.add(Convolution2D(64, 3, 3))
+model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.5))
 
@@ -101,55 +102,89 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=15, verbose=1, validation_data=(testX, testY))
+epochNum = 15
 
-# plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
-# visualizing losses and accuracy
-train_loss = hist.history['loss']
-val_loss = hist.history['val_loss']
-train_acc = hist.history['acc']
-val_acc = hist.history['val_acc']
-xc = range(15)
-
-plt.figure(1, figsize=(7, 5))
-plt.plot(xc, train_loss)
-plt.plot(xc, val_loss)
-plt.xlabel('num of Epochs')
-plt.ylabel('loss')
-plt.title('train_loss vs val_loss')
-plt.grid(True)
-plt.legend(['train', 'val'])
-# print plt.style.available # use bmh, classic,ggplot for big pictures
-plt.style.use(['classic'])
-plt.show()
-
-plt.figure(2,figsize=(7,5))
-plt.plot(xc,train_acc)
-plt.plot(xc,val_acc)
-plt.xlabel('num of Epochs')
-plt.ylabel('accuracy')
-plt.title('train_acc vs val_acc')
-plt.grid(True)
-plt.legend(['train','val'],loc=4)
-# print plt.style.available # use bmh, classic,ggplot for big pictures
-plt.style.use(['classic'])
-plt.show()
+hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=epochNum, verbose=1, validation_data=(testX, testY))
 
 
-# score = model.evaluate(testX, testY, batch_size=128)
-# print('Test Loss', score[0])
-# print('Test Accuracy', score[1])
+flag = True
+while flag:
+    usrPlt = input("Would you like to plot Training and Validation Data? Y/N: ")
+    if usrPlt == 'Y':
+        # plot_model(model, to_file='model.png', show_shapes=False, show_layer_names=True)
+        # visualizing losses and accuracy
+        trainLoss = hist.history['loss']
+        valLoss = hist.history['val_loss']
+        trainAcc = hist.history['acc']
+        valAcc = hist.history['val_acc']
+        e = range(epochNum)
+        plt.figure(1, figsize=(7, 5))
+        plt.plot(e, trainLoss)
+        plt.plot(e, valLoss)
+        plt.xlabel('num of Epochs')
+        plt.ylabel('loss')
+        plt.title('training loss vs validation loss')
+        plt.grid(True)
+        plt.legend(['train', 'val'])
+        # print plt.style.available # use bmh, classic,ggplot for big pictures
+        plt.style.use(['classic'])
+        plt.show()
 
-testImage = cv2.imread('C:\\Users\\Thoma\\Fish Dataset\\Test\\test_fish.jpg')
-testImage = cv2.resize(testImage, (imgRows, imgCols))
-testImage = np.array(testImage)
-testImage = testImage.astype('float32')
-testImage /= 255
-testImage = np.expand_dims(testImage, axis=0)
-print(testImage.shape)
+        plt.figure(2,figsize=(7,5))
+        plt.plot(e, trainAcc)
+        plt.plot(e, valAcc)
+        plt.xlabel('num of Epochs')
+        plt.ylabel('accuracy')
+        plt.title('train accuracy vs validation accuracy')
+        plt.grid(True)
+        plt.legend(['train', 'val'], loc=4)
+        # print plt.style.available # use bmh, classic,ggplot for big pictures
+        # plt.style.use(['classic'])
+        plt.show()
+        flag = False
+    elif usrPlt == 'N':
+        flag = False
+    else:
+        print('Invalid Input')
 
-print((model.predict(testImage)))
-predict = (model.predict_classes(testImage))
-predict = predict.astype('int')
-prediction = predict[0]
-print('The most likely category is : ' + categories[prediction])
+flag = True
+while flag:
+    usrEval = input("Would you like to evaluate this model? Y/N: ")
+    if usrEval == 'Y':
+        score = model.evaluate(testX, testY, batch_size=128)
+        print('Test Loss', score[0])
+        print('Test Accuracy', score[1])
+        flag = False
+    elif usrEval == 'N':
+        flag = False
+    else:
+        print('Invalid Input')
+
+flag = True
+while flag:
+    usrTst = input("Would you like to test using an image outside the dataset? Y/N: ")
+    if usrTst == 'Y':
+        try:
+            fishTest = input("Place the image to be tested in the \"Fish Dataset\\Test\\\" Folder and provide the file"
+                             " name and extension now (only jpg files supported): ")
+            testImage = cv2.imread('Fish Dataset\\Test\\' + fishTest + '.jpg')
+            testImage = cv2.resize(testImage, (imgRows, imgCols))
+            testImage = np.array(testImage)
+            testImage = testImage.astype('float32')
+            testImage /= 255
+            testImage = np.expand_dims(testImage, axis=0)
+            print(testImage.shape)
+
+            print((model.predict(testImage)))
+            predict = (model.predict_classes(testImage))
+
+            predict = predict.astype('int')
+            prediction = predict[0]
+            print('The most likely category is : ' + categories[prediction])
+            flag = True
+        except OSError:
+            print("Invalid File Name")
+    elif usrTst == 'N':
+        flag = False
+    else:
+        print('Invalid Input')
