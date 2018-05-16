@@ -1,8 +1,6 @@
 import os
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-import h5py
 
 try:
     # pydot-ng is a fork of pydot that is better maintained.
@@ -18,7 +16,6 @@ except ImportError:
         except ImportError:
             pydot = None
 
-
 def _check_pydot():
     try:
         # Attempt to create an image of a blank graph
@@ -30,9 +27,7 @@ def _check_pydot():
         raise ImportError('Failed to import pydot. You must install pydot'
                           ' and graphviz for `pydotprint` to work.')
 
-import graphviz
-import pydot_ng as pydot
-pydot.find_graphviz()
+from ann_visualizer.visualize import ann_viz
 
 from keras import backend as k
 k.set_image_dim_ordering('tf')
@@ -97,83 +92,64 @@ x, y = shuffle(imgData, lc, random_state=2)
 
 trainX, testX, trainY, testY = train_test_split(x, y, test_size=0.2, random_state=2)
 
-print('Beginning Training Using Keras and TensorFlow')
+print('Loading Model...')
 
-inputShape = imgData[0].shape
+model = load_model('model\\modelNew.h5')
 
-model = Sequential()
-
-model.add(Convolution2D(32, 3, 3, border_mode='same', input_shape=inputShape))
-model.add(Activation('relu'))
-model.add(Convolution2D(32, 3, 3))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
-
-model.add(Convolution2D(64, 3, 3))
-model.add(Activation('relu'))
-model.add(Convolution2D(64, 3, 3))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.5))
-
-model.add(Flatten())
-model.add(Dense(64))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
-model.add(Dense(numCategories))
-model.add(Activation('softmax'))
-
-model.compile(loss='categorical_crossentropy', optimizer='adadelta',metrics=["accuracy"])
-
-model.summary()
-model.get_config()
-model.layers[0].get_config()
-model.layers[0].input_shape
-model.layers[0].output_shape
-model.layers[0].get_weights()
-np.shape(model.layers[0].get_weights()[0])
-model.layers[0].trainable
-
-epochNum = 20
-
-hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=epochNum, verbose=1, validation_data=(testX, testY))
-
+# inputShape = imgData[0].shape
+#
+# model = Sequential()
+#
+# model.add(Convolution2D(32, 3, 3, border_mode='same', input_shape=inputShape))
+# model.add(Activation('relu'))
+# model.add(Convolution2D(32, 3, 3))
+# model.add(Activation('relu'))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(Dropout(0.5))
+#
+# model.add(Convolution2D(64, 3, 3))
+# model.add(Activation('relu'))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(Dropout(0.5))
+#
+# model.add(Flatten())
+# model.add(Dense(64))
+# model.add(Activation('relu'))
+# model.add(Dropout(0.5))
+# model.add(Dense(numCategories))
+# model.add(Activation('softmax'))
+#
+# model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=["accuracy"])
+#
+# model.summary()
+# model.get_config()
+# model.layers[0].get_config()
+# # model.layers[0].input_shape
+# # model.layers[0].output_shape
+# model.layers[0].get_weights()
+# np.shape(model.layers[0].get_weights()[0])
+# # model.layers[0].trainable()
+#
+# epochNum = 30
+#
+# hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=epochNum, verbose=1, validation_data=(testX, testY))
+#
+# model.save("model\\modelNew.h5")
 
 flag = True
 while flag:
-    usrPlt = input("Would you like to plot Training, Validation and Loss Data? Y/N: ")
-    if usrPlt == 'Y':
-
-        trainLoss = hist.history['loss']
-        valLoss = hist.history['val_loss']
-        trainAcc = hist.history['acc']
-        valAcc = hist.history['val_acc']
-        e = range(epochNum)
-        plt.figure(1, figsize=(7, 5))
-        plt.plot(e, trainLoss)
-        plt.plot(e, valLoss)
-        plt.xlabel('num of Epochs')
-        plt.ylabel('loss')
-        plt.title('training loss vs validation loss')
-        plt.grid(True)
-        plt.legend(['train', 'val'])
-        plt.show()
-
-        plt.figure(2, figsize=(7, 5))
-        plt.plot(e, trainAcc)
-        plt.plot(e, valAcc)
-        plt.xlabel('num of Epochs')
-        plt.ylabel('accuracy')
-        plt.title('train accuracy vs validation accuracy')
-        plt.grid(True)
-        plt.legend(['train', 'val'], loc=4)
-        plt.show()
+    usrVis = input("Would you like to visualise the model? Y/N: ")
+    if usrVis == 'Y':
+        try:
+            ann_viz(model, 'visualisation.gv', title="Convolutional Neural Network for Fish Classification")
+        except OSError:
+            print(OSError)
         flag = False
-    elif usrPlt == 'N':
+    elif usrVis == 'N':
         flag = False
     else:
-        print('Invalid Input')
+        print("Invalid Input")
+
 
 flag = True
 while flag:
@@ -189,14 +165,11 @@ while flag:
         print('Invalid Input')
 
 
-model.save('model\\model.h5')
-
-
-
 flag = True
 while flag:
     usrTst = input("Would you like to test using images outside the dataset? Y/N: ")
     if usrTst == 'Y':
+        print('\n')
         try:
             imgTestList = os.listdir(testDataPath)
             for img in imgTestList:
