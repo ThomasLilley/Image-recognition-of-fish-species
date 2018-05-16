@@ -2,6 +2,37 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import h5py
+
+try:
+    # pydot-ng is a fork of pydot that is better maintained.
+    import pydot_ng as pydot
+except ImportError:
+    # pydotplus is an improved version of pydot
+    try:
+        import pydotplus as pydot
+    except ImportError:
+        # Fall back on pydot if necessary.
+        try:
+            import pydot
+        except ImportError:
+            pydot = None
+
+
+def _check_pydot():
+    try:
+        # Attempt to create an image of a blank graph
+        # to check the pydot/graphviz installation.
+        pydot.Dot.create(pydot.Dot())
+    except Exception:
+        # pydot raises a generic Exception here,
+        # so no specific class can be caught.
+        raise ImportError('Failed to import pydot. You must install pydot'
+                          ' and graphviz for `pydotprint` to work.')
+
+import graphviz
+import pydot_ng as pydot
+pydot.find_graphviz()
 
 from keras import backend as k
 k.set_image_dim_ordering('tf')
@@ -9,16 +40,19 @@ k.set_image_dim_ordering('tf')
 from keras.utils import np_utils, plot_model
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import  Convolution2D, MaxPooling2D
-
+from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.models import load_model
+from keras.models import model_from_json
 
 from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
 
 
 dataPath = 'Fish Dataset\\Fish Dataset'
+testDataPath = 'Fish Dataset\\Test'
 numCategories = 10
 dataDirList = os.listdir(dataPath)
+testDataDirList = os.listdir(testDataPath)
 imgRows = 128
 imgCols = 128
 numChannels = 3
@@ -101,7 +135,7 @@ model.layers[0].get_weights()
 np.shape(model.layers[0].get_weights()[0])
 model.layers[0].trainable
 
-epochNum = 15
+epochNum = 20
 
 hist = model.fit(trainX, trainY, batch_size=16, nb_epoch=epochNum, verbose=1, validation_data=(testX, testY))
 
@@ -154,28 +188,34 @@ while flag:
     else:
         print('Invalid Input')
 
+
+model.save('model\\model.h5')
+
+
+
 flag = True
 while flag:
-    usrTst = input("Would you like to test using an image outside the dataset? Y/N: ")
+    usrTst = input("Would you like to test using images outside the dataset? Y/N: ")
     if usrTst == 'Y':
         try:
-            fishTest = input("Place the image to be tested in the \"Fish Dataset\\Test\\\" Folder and provide the file"
-                             " name and extension now (only jpg files supported): ")
-            testImage = cv2.imread('Fish Dataset\\Test\\' + fishTest + '.jpg')
-            testImage = cv2.resize(testImage, (imgRows, imgCols))
-            testImage = np.array(testImage)
-            testImage = testImage.astype('float32')
-            testImage /= 255
-            testImage = np.expand_dims(testImage, axis=0)
-            print(testImage.shape)
+            imgTestList = os.listdir(testDataPath)
+            for img in imgTestList:
+                inputTestImg = cv2.imread(testDataPath + '/' + img)
+                testImage = cv2.resize(inputTestImg, (imgRows, imgCols))
+                imgDataList.append(testImage)
 
-            print((model.predict(testImage)))
-            predict = (model.predict_classes(testImage))
+                testImage = cv2.resize(testImage, (imgRows, imgCols))
+                testImage = np.array(testImage)
+                testImage = testImage.astype('float32')
+                testImage /= 255
+                testImage = np.expand_dims(testImage, axis=0)
 
-            predict = predict.astype('int')
-            prediction = predict[0]
-            print('The most likely category is : ' + categories[prediction])
-            flag = True
+                predict = (model.predict_classes(testImage))
+
+                predict = predict.astype('int')
+                prediction = predict[0]
+                print('The most likely category for: ', img, ' is ', categories[prediction], '\n')
+            flag = False
         except OSError:
             print("Invalid File Name")
     elif usrTst == 'N':
